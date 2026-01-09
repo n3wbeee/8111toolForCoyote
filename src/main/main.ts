@@ -12,7 +12,6 @@ import path from 'path';
 import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
-import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
 class AppUpdater {
@@ -65,6 +64,7 @@ const createWindow = async () => {
 
 	mainWindow = new BrowserWindow({
 		show: false,
+		frame: false,
 		width: 1024,
 		height: 728,
 		icon: getAssetPath('icon.png'),
@@ -92,9 +92,6 @@ const createWindow = async () => {
 		mainWindow = null;
 	});
 
-	const menuBuilder = new MenuBuilder(mainWindow);
-	menuBuilder.buildMenu();
-
 	// Remove this if your app does not use auto updates
 	// eslint-disable-next-line
 	new AppUpdater();
@@ -112,9 +109,26 @@ app.on('window-all-closed', () => {
 
 app.whenReady()
 	.then(() => {
-		createWindow();
-		app.on('activate', () => {
-			if (mainWindow === null) createWindow();
+		ipcMain.on('close-app', () => {
+			if (mainWindow) {
+				mainWindow.close();
+			}
 		});
+		ipcMain.on('minimize-app', () => {
+			if (mainWindow) {
+				mainWindow.minimize();
+			}
+		});
+		ipcMain.on('maximize-app', () => {
+			if (mainWindow) {
+				if (mainWindow.isMaximized()) {
+					mainWindow.unmaximize();
+				} else {
+					mainWindow.maximize();
+				}
+			}
+		});
+
+		createWindow();
 	})
 	.catch(console.log);
