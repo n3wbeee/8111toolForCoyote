@@ -1,27 +1,32 @@
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
-import { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+
+import { useEffect } from 'react';
+
 import close from '../../assets/icons/close.svg';
 import maximize from '../../assets/icons/maximize.svg';
 import minimize from '../../assets/icons/minimize.svg';
+
 import './AppComplied.css';
 
 function Sidebar() {
-	const [activeButton, setActiveButton] = useState('test');
+	let navigate = useNavigate();
+	let location = useLocation();
 
 	function Button({
 		text,
-		activeButton,
+		status,
 		onClick,
 	}: {
 		text: string;
-		activeButton: string;
+		status: boolean;
 		onClick?: () => void;
 	}) {
 		return (
 			<div
 				className={`w-full h-12 rounded-xl select-none flex items-center p-4 transition-colors cursor-pointer
-				${activeButton === text ? 'bg-blue-500 text-neutral-100' : 'hover:bg-blue-400 hover:text-neutral-100'}
-				active:bg-blue-600
+				${status ? 'bg-blue-500 text-neutral-100' : 'hover:bg-blue-400 hover:text-neutral-100'}
+				active:bg-blue-600 active:text-neutral-100
 				`}
 				onClick={onClick}
 				id={text}
@@ -34,14 +39,14 @@ function Sidebar() {
 	return (
 		<div className="w-48 h-full bg-neutral-50 flex flex-col items-center p-4 gap-4">
 			<Button
-				text="test"
-				activeButton={activeButton}
-				onClick={() => setActiveButton('test')}
+				text="规则"
+				status={location.pathname === '/rule'}
+				onClick={() => navigate('/rule')}
 			/>
 			<Button
-				text="test2"
-				activeButton={activeButton}
-				onClick={() => setActiveButton('test2')}
+				text="设置"
+				status={location.pathname === '/setting'}
+				onClick={() => navigate('/setting')}
 			/>
 		</div>
 	);
@@ -79,7 +84,27 @@ function Navbar() {
 	);
 }
 
+function Rule() {
+	return (
+		<div className="flex flex-1 ">
+			<div className="w-48"></div>
+			<div className="bg-neutral-200 w-px h-full"></div>
+			<div className="flex-1"></div>
+		</div>
+	);
+}
+
+function Setting() {
+	return <div className="p-4">Setting Content</div>;
+}
+
 function MainPage() {
+	let navigate = useNavigate();
+
+	useEffect(() => {
+		navigate('/rule');
+	}, []);
+
 	return (
 		<>
 			<Sidebar />
@@ -90,6 +115,10 @@ function MainPage() {
 				<div className="bg-neutral-200 w-full h-px" />
 
 				{/* 内容区 */}
+				<Routes>
+					<Route path="/rule" element={<Rule />} />
+					<Route path="/setting" element={<Setting />} />
+				</Routes>
 			</div>
 		</>
 	);
@@ -98,9 +127,7 @@ function MainPage() {
 export default function App() {
 	return (
 		<Router>
-			<Routes>
-				<Route path="/" element={<MainPage />} />
-			</Routes>
+			<MainPage />
 		</Router>
 	);
 }
