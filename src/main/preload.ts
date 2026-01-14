@@ -19,8 +19,14 @@ const dataHandler = {
 	},
 };
 
+const networkHandler = {
+	getLocalIP: () => ipcRenderer.invoke('get-local-ip'),
+};
+
 contextBridge.exposeInMainWorld('windowHandler', windowHandler);
 contextBridge.exposeInMainWorld('data', dataHandler);
+contextBridge.exposeInMainWorld('network', networkHandler);
 
 export type WindowHandler = typeof windowHandler;
 export type DataHandler = typeof dataHandler;
+export type NetworkHandler = typeof networkHandler;

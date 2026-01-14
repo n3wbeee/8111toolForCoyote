@@ -1,3 +1,3 @@
 import WebSocket from 'ws';
 
-const ws = new WebSocket.Server({ port: 8080 });
+const ws = new WebSocket.Server({ port: 1314 });

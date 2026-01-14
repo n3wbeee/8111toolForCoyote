@@ -13,6 +13,10 @@ import { app, BrowserWindow, Tray, ipcMain, Menu } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import { resolveHtmlPath } from './util';
+import WebSocket from 'ws';
+
+const os = require('os');
+const ws = new WebSocket.Server({ port: 1314 });
 
 class AppUpdater {
 	constructor() {
@@ -147,29 +151,26 @@ app.whenReady()
 			}
 		});
 		ipcMain.on('maximize-app', () => {
-			// fetch(
-			// 	isDebug
-			// 		? 'http://127.0.0.1:4523/m1/7705341-7448087-default/state'
-			// 		: 'localhost:8111/state',
-			// )
-			// 	.then((response) => {
-			// 		if (!response.ok) throw new Error('网络响应错误');
-			// 		return response.json();
-			// 	})
-			// 	.then((data) => {
-			// 		mainWindow?.webContents.send('update-state', data);
-			// 		console.log(data);
-			// 	})
-			// 	.catch((error) => {
-			// 		mainWindow?.webContents.send('update-state', null);
-			// 		console.error(error);
-			// 	});
-
 			if (mainWindow) {
 				if (mainWindow.isMaximized()) {
 					mainWindow.unmaximize();
 				} else {
 					mainWindow.maximize();
+				}
+			}
+		});
+
+		ipcMain.handle('get-local-ip', () => {
+			const networkInterfaces = os.networkInterfaces();
+			for (const name of Object.keys(networkInterfaces)) {
+				for (const network of networkInterfaces[name]) {
+					if (
+						network.family === 'IPv4' &&
+						!network.internal &&
+						network.address.includes('192')
+					) {
+						return network.address;
+					}
 				}
 			}
 		});

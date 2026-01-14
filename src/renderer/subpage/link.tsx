@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
+
 import lostConnect from '../../../assets/icons/lost_connect.svg';
 
 import '../styleComplied.css';
+import { url } from 'inspector';
 
 function WarthunderPage({ stateData }: { stateData: any }) {
 	return (
@@ -61,8 +64,32 @@ function WarthunderPage({ stateData }: { stateData: any }) {
 	);
 }
 
+function CoyotePage({ localIP }: { localIP: string }) {
+	const url =
+		'https://www.dungeon-lab.com/app-download.php#DGLAB-SOCKET#ws://' +
+		localIP +
+		':1314';
+
+	return (
+		<>
+			<QRCodeSVG value={url} bgColor="#F5F5F5" />
+			<p className="text-neutral-400 text-lg select-none">
+				扫码链接WebSocket
+			</p>
+		</>
+	);
+}
+
 function Link() {
 	const [stateData, setStateData] = useState();
+	const [localIP, setLocalIP] = useState('');
+
+	useEffect(() => {
+		window.network.getLocalIP().then((localIP) => {
+			console.log(localIP);
+			setLocalIP(localIP);
+		});
+	}, []);
 
 	useEffect(() => {
 		window.data.onUpdateState((data) => {
@@ -76,7 +103,9 @@ function Link() {
 
 			<div className="bg-neutral-200 w-px h-full" />
 
-			<div className="flex flex-1 flex-col justify-center items-center"></div>
+			<div className="flex flex-1 flex-col gap-4 justify-center items-center">
+				<CoyotePage localIP={localIP} />
+			</div>
 		</div>
 	);
 }
