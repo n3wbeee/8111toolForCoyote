@@ -23,10 +23,16 @@ const networkHandler = {
 	getLocalIP: () => ipcRenderer.invoke('get-local-ip'),
 };
 
+const websocketHandler = {
+	getIsConnected: () => ipcRenderer.invoke('get-is-connected'),
+};
+
 contextBridge.exposeInMainWorld('windowHandler', windowHandler);
 contextBridge.exposeInMainWorld('data', dataHandler);
 contextBridge.exposeInMainWorld('network', networkHandler);
+contextBridge.exposeInMainWorld('websocket', websocketHandler);
 
 export type WindowHandler = typeof windowHandler;
 export type DataHandler = typeof dataHandler;
 export type NetworkHandler = typeof networkHandler;
+export type WebsocketHandler = typeof websocketHandler;

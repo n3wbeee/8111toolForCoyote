@@ -17,8 +17,6 @@ import { WebSocketManager } from './websocket';
 
 const os = require('os');
 
-let wsManager: WebSocketManager;
-
 class AppUpdater {
 	constructor() {
 		log.transports.file.level = 'info';
@@ -141,7 +139,7 @@ app.on('window-all-closed', async () => {
 app.whenReady()
 	.then(() => {
 		// 初始化 WebSocket 服务器
-		wsManager = new WebSocketManager(1314);
+		let wsManager = new WebSocketManager(1314);
 
 		ipcMain.on('close-app', () => {
 			if (mainWindow) {
@@ -178,26 +176,30 @@ app.whenReady()
 			}
 		});
 
+		ipcMain.handle('get-is-connected', () => {
+			return wsManager.getIsConnected();
+		});
+
 		createWindow();
 
-		// setInterval(() => {
-		// 	fetch(
-		// 		isDebug
-		// 			? 'http://127.0.0.1:4523/m1/7705341-7448087-default/state'
-		// 			: 'http://localhost:8111/state',
-		// 	)
-		// 		.then((response) => {
-		// 			if (!response.ok) throw new Error('网络响应错误');
-		// 			return response.json();
-		// 		})
-		// 		.then((data) => {
-		// 			mainWindow?.webContents.send('update-state', data);
-		// 			console.log(data);
-		// 		})
-		// 		.catch((error) => {
-		// 			mainWindow?.webContents.send('update-state', null);
-		// 			console.error(error);
-		// 		});
-		// }, 250);
+		setInterval(() => {
+			fetch(
+				isDebug
+					? 'http://127.0.0.1:4523/m1/7705341-7448087-default/state'
+					: 'http://localhost:8111/state',
+			)
+				.then((response) => {
+					if (!response.ok) throw new Error('网络响应错误');
+					return response.json();
+				})
+				.then((data) => {
+					mainWindow?.webContents.send('update-state', data);
+					console.log(data);
+				})
+				.catch((error) => {
+					mainWindow?.webContents.send('update-state', null);
+					console.error(error);
+				});
+		}, 250);
 	})
 	.catch(console.log);

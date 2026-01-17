@@ -2,18 +2,25 @@ import { WebSocketServer, WebSocket } from 'ws';
 
 const { v4: uuidv4 } = require('uuid');
 
+export interface strength {
+	channelAStrength: number;
+	channelBStrength: number;
+	channelALimit: number;
+	channelBLimit: number;
+}
+
 export class WebSocketManager {
 	private wss: WebSocketServer;
 	// @ts-ignore
 	private ws: WebSocket;
 
-	isConnected: boolean = false;
-
-	channelAStrength: number = 0;
-	channelBStrength: number = 0;
-
-	channelALimit: number = 0;
-	channelBLimit: number = 0;
+	private isConnected: boolean = false;
+	private strengthData: strength = {
+		channelAStrength: 0,
+		channelBStrength: 0,
+		channelALimit: 0,
+		channelBLimit: 0,
+	};
 
 	constructor(
 		port: number = 1314,
@@ -85,10 +92,14 @@ export class WebSocketManager {
 							if (data.message.includes('strength')) {
 								var strengthData = data.message.split(/[-+]/);
 
-								this.channelAStrength = strengthData[1];
-								this.channelBStrength = strengthData[2];
-								this.channelALimit = strengthData[3];
-								this.channelBLimit = strengthData[4];
+								this.strengthData.channelAStrength =
+									strengthData[1];
+								this.strengthData.channelBStrength =
+									strengthData[2];
+								this.strengthData.channelALimit =
+									strengthData[3];
+								this.strengthData.channelBLimit =
+									strengthData[4];
 							}
 
 							if (onMessage) onMessage();
@@ -108,5 +119,13 @@ export class WebSocketManager {
 				if (onDisconnect) onDisconnect();
 			});
 		});
+	}
+
+	getIsConnected() {
+		return this.isConnected;
+	}
+
+	getStrength() {
+		return this.strengthData;
 	}
 }

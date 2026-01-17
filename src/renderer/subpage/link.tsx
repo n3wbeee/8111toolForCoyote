@@ -4,9 +4,17 @@ import { QRCodeSVG } from 'qrcode.react';
 import lostConnect from '../../../assets/icons/lost_connect.svg';
 
 import '../styleComplied.css';
-import { url } from 'inspector';
+import { stat } from 'fs';
 
-function WarthunderPage({ stateData }: { stateData: any }) {
+function WarthunderPage() {
+	const [stateData, setStateData] = useState();
+
+	useEffect(() => {
+		window.data.onUpdateState((data) => {
+			setStateData(data);
+		});
+	}, []);
+
 	return (
 		<div className="flex flex-1 flex-col">
 			{stateData && (
@@ -66,28 +74,15 @@ function WarthunderPage({ stateData }: { stateData: any }) {
 	);
 }
 
-function CoyotePage({ localIP }: { localIP: string }) {
-	const url =
-		'https://www.dungeon-lab.com/app-download.php#DGLAB-SOCKET#ws://' +
-		localIP +
-		':1314';
-
-	return (
-		<>
-			<QRCodeSVG value={url} bgColor="#F5F5F5" />
-			<p className="text-neutral-400 text-lg select-none">
-				扫码链接 WebSocket
-			</p>
-			<p className="text-neutral-400 text select-none">
-				服务器地址：{localIP}
-			</p>
-		</>
-	);
-}
-
-function Link() {
-	const [stateData, setStateData] = useState();
+function CoyotePage() {
 	const [localIP, setLocalIP] = useState('');
+	const [isCoyoteConnected, setIsCoyoteConnected] = useState(false);
+
+	useEffect(() => {
+		window.websocket.getIsConnected().then((status) => {
+			setIsCoyoteConnected(status);
+		});
+	}, []);
 
 	useEffect(() => {
 		window.network.getLocalIP().then((localIP) => {
@@ -95,20 +90,41 @@ function Link() {
 		});
 	}, []);
 
-	useEffect(() => {
-		window.data.onUpdateState((data) => {
-			setStateData(data);
-		});
-	}, []);
+	const url =
+		'https://www.dungeon-lab.com/app-download.php#DGLAB-SOCKET#ws://' +
+		localIP +
+		':1314';
 
 	return (
+		<>
+			{isCoyoteConnected ? (
+				<div className="text-neutral-400 text-lg select-none">
+					已链接
+				</div>
+			) : (
+				<>
+					<QRCodeSVG value={url} bgColor="#F5F5F5" />
+					<p className="text-neutral-400 text-lg select-none">
+						扫码链接 WebSocket
+					</p>
+					<p className="text-neutral-400 text select-none">
+						服务器地址：{localIP}
+					</p>
+				</>
+			)}
+		</>
+	);
+}
+
+function Link() {
+	return (
 		<div className="flex flex-1 h-full overflow-auto">
-			<WarthunderPage stateData={stateData} />
+			<WarthunderPage />
 
 			<div className="bg-neutral-200 w-px h-full" />
 
 			<div className="flex flex-1 flex-col gap-2 justify-center items-center">
-				<CoyotePage localIP={localIP} />
+				<CoyotePage />
 			</div>
 		</div>
 	);
