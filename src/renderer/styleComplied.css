@@ -584,6 +584,10 @@ video {
   }
 }
 
+.m-1 {
+  margin: 0.25rem;
+}
+
 .m-2 {
   margin: 0.5rem;
 }
@@ -608,10 +612,6 @@ video {
   height: 6rem;
 }
 
-.h-4 {
-  height: 1rem;
-}
-
 .h-8 {
   height: 2rem;
 }
@@ -630,6 +630,10 @@ video {
 
 .w-2 {
   width: 0.5rem;
+}
+
+.w-32 {
+  width: 8rem;
 }
 
 .w-48 {
@@ -745,6 +749,10 @@ video {
 .bg-red-500 {
   --tw-bg-opacity: 1;
   background-color: rgb(239 68 68 / var(--tw-bg-opacity, 1));
+}
+
+.p-2 {
+  padding: 0.5rem;
 }
 
 .p-4 {

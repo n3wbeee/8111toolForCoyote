@@ -1,7 +1,7 @@
 // Disable no-unused-vars, broken for spread args
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
-import { on } from 'events';
+import { data } from 'react-router-dom';
 
 export type Channels = 'ipc-example';
 
@@ -25,6 +25,28 @@ const networkHandler = {
 
 const websocketHandler = {
 	getIsConnected: () => ipcRenderer.invoke('get-is-connected'),
+	getStrength: () => ipcRenderer.invoke('get-strength'),
+
+	onConnect: (callback: () => void) => {
+		ipcRenderer.on('connected', () => {
+			callback();
+		});
+	},
+	onDisconnect: (callback: () => void) => {
+		ipcRenderer.on('disconnected', () => {
+			callback();
+		});
+	},
+	onBind: (callback: () => void) => {
+		ipcRenderer.on('bound', () => {
+			callback();
+		});
+	},
+	onMessage: (callback: (data: any) => void) => {
+		ipcRenderer.on('message', (event: IpcRendererEvent, data: any) => {
+			callback(data);
+		});
+	},
 };
 
 contextBridge.exposeInMainWorld('windowHandler', windowHandler);

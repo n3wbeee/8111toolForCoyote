@@ -2,7 +2,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 
 const { v4: uuidv4 } = require('uuid');
 
-export interface strength {
+export interface Strength {
 	channelAStrength: number;
 	channelBStrength: number;
 	channelALimit: number;
@@ -12,30 +12,31 @@ export interface strength {
 export class WebSocketManager {
 	private wss: WebSocketServer;
 	// @ts-ignore
-	private ws: WebSocket;
+	private coyoteWs: WebSocket;
+
+	private clientID: string = '';
+	private targetID: string = '';
 
 	private isConnected: boolean = false;
-	private strengthData: strength = {
+	private strengthData: Strength = {
 		channelAStrength: 0,
 		channelBStrength: 0,
 		channelALimit: 0,
 		channelBLimit: 0,
 	};
 
-	constructor(
-		port: number = 1314,
-		onConnection?: Function,
-		onBind?: Function,
-		onDisconnect?: Function,
-		onMessage?: Function,
-	) {
+	private onConnectFunc: Function = () => {};
+	private onBindFunc: Function = () => {};
+	private onDisconnectFunc: Function = () => {};
+	private onMessageFunc: Function = () => {};
+
+	constructor(port: number = 1314) {
 		this.wss = new WebSocketServer({ port });
 
 		this.wss.on('connection', (ws: WebSocket) => {
-			this.ws = ws;
 			const clientID = uuidv4();
 
-			if (onConnection) onConnection();
+			if (this.onConnectFunc) this.onConnectFunc();
 
 			// 发送绑定消息
 			ws.send(
@@ -80,12 +81,17 @@ export class WebSocketManager {
 									type: 'bind',
 									clientId: clientID,
 									message: '200',
-									targetId: data.targetId,
+									targetId: data.clientId,
 								}),
 							);
 
-							if (onBind) onBind();
+							if (this.onBindFunc) this.onBindFunc();
+
 							this.isConnected = true;
+							this.coyoteWs = ws;
+							this.clientID = data.clientId;
+							this.targetID = data.targetId;
+
 							break;
 
 						case 'msg':
@@ -102,12 +108,28 @@ export class WebSocketManager {
 									strengthData[4];
 							}
 
-							if (onMessage) onMessage();
+							if (this.onMessageFunc) this.onMessageFunc();
 							break;
 
 						case 'break':
 							ws.close();
 							break;
+
+						case 'command':
+							if (this.isConnected) {
+								console.log(this.targetID, this.clientID);
+								this.coyoteWs.send(
+									JSON.stringify({
+										type: 'msg',
+										clientId: this.clientID,
+										message:
+											'pulse-A:["0A0A0A0A00000000","0A0A0A0A0A0A0A0A","0A0A0A0A14141414","0A0A0A0A1E1E1E1E","0A0A0A0A28282828","0A0A0A0A32323232","0A0A0A0A3C3C3C3C","0A0A0A0A46464646","0A0A0A0A50505050","0A0A0A0A5A5A5A5A","0A0A0A0A64646464"]',
+										targetId: this.targetID,
+									}),
+								);
+							}
+							break;
+
 						default:
 							break;
 					}
@@ -116,7 +138,7 @@ export class WebSocketManager {
 
 			ws.on('close', () => {
 				this.isConnected = false;
-				if (onDisconnect) onDisconnect();
+				if (this.onDisconnectFunc) this.onDisconnectFunc();
 			});
 		});
 	}
@@ -127,5 +149,18 @@ export class WebSocketManager {
 
 	getStrength() {
 		return this.strengthData;
+	}
+
+	onConnect(onConnectFunc: Function) {
+		this.onConnectFunc = onConnectFunc;
+	}
+	onBind(onBindFunc: Function) {
+		this.onBindFunc = onBindFunc;
+	}
+	onDisconnect(onDisconnectFunc: Function) {
+		this.onDisconnectFunc = onDisconnectFunc;
+	}
+	onMessage(onMessageFunc: Function) {
+		this.onMessageFunc = onMessageFunc;
 	}
 }
