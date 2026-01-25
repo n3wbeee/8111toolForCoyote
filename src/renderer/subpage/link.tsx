@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { Strength } from '../../main/websocket';
 
 import lostConnect from '../../../assets/icons/lost_connect.svg';
 
 import '../styleComplied.css';
-import { stat } from 'fs';
 
 function WarthunderPage() {
 	const [stateData, setStateData] = useState();

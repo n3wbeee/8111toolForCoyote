@@ -2,6 +2,7 @@ import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import Link from './subpage/link';
+import Rule from './subpage/rule';
 
 import { useEffect, useState } from 'react';
 
@@ -92,29 +93,6 @@ function Navbar() {
 			>
 				<img src={close} />
 			</div>
-		</div>
-	);
-}
-
-function Rule() {
-	function TriggerCard() {
-		return (
-			<div className="h-24 rounded-2xl shrink-0 shadow bg-neutral-50"></div>
-		);
-	}
-
-	return (
-		<div className="flex flex-1 h-full overflow-auto">
-			{/* 规则触发器 */}
-			<div className="w-64 h-full gap-4 p-4 overflow-auto flex flex-col">
-				<TriggerCard />
-				<TriggerCard />
-			</div>
-
-			<div className="bg-neutral-200 w-px h-full"></div>
-
-			{/* 规则内容区 */}
-			<div className="flex-1"></div>
 		</div>
 	);
 }
