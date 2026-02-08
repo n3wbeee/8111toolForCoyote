@@ -5,7 +5,7 @@ import lostConnect from '../../../assets/icons/lost_connect.svg';
 
 import '../styleComplied.css';
 
-function WarthunderPage() {
+function WarthunderContent() {
 	const [stateData, setStateData] = useState();
 
 	useEffect(() => {
@@ -73,7 +73,7 @@ function WarthunderPage() {
 	);
 }
 
-function CoyotePage() {
+function CoyoteContent() {
 	const [localIP, setLocalIP] = useState('');
 	const [isCoyoteConnected, setIsCoyoteConnected] = useState(false);
 	const [strength, setStrength] = useState();
@@ -155,12 +155,12 @@ function CoyotePage() {
 function Link() {
 	return (
 		<div className="flex flex-1 h-full overflow-auto">
-			<WarthunderPage />
+			<WarthunderContent />
 
 			<div className="bg-neutral-200 w-px h-full" />
 
 			<div className="flex flex-1 flex-col justify-center items-center">
-				<CoyotePage />
+				<CoyoteContent />
 			</div>
 		</div>
 	);

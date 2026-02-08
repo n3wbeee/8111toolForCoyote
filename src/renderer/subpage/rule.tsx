@@ -6,32 +6,66 @@ import save from '../../../assets/icons/save.svg';
 import create from '../../../assets/icons/create.svg';
 import deleteIcon from '../../../assets/icons/delete.svg';
 import dragHandle from '../../../assets/icons/drag_handle.svg';
+import edit from '../../../assets/icons/edit.svg';
 
-import '../styleComplied.css';
+import { Rule, TriggerType } from '../../interfaces.d';
+
+const triggerOptions: TriggerType[] = ['onAirbrakeOn', 'onCriticalSpeed'];
 
 function TriggerCard({
 	item,
 	dragHandleProps,
 	onDelete,
+	onTriggerChange,
+	onNameChange,
 }: {
-	item: any;
+	item: Rule;
 	dragHandleProps: any;
 	onDelete: (id: string) => void;
+	onTriggerChange: (id: string, newTrigger: TriggerType) => void;
+	onNameChange: (id: string, newName: string) => void;
 }) {
 	return (
 		<div
-			className="h-16 rounded-2xl m-4 shrink-0 shadow flex items-center p-2 gap-2 bg-neutral-50 select-none transition-colors
-					 hover:bg-blue-200 "
+			className="h-16 rounded-2xl m-4 shrink-0 shadow relative flex group items-center p-2 gap-2 bg-neutral-50 select-none
+			transition-colors hover:bg-blue-200"
 		>
+			<img src={edit} className="w-6 h-6 cursor-pointer" />
+			{/* 规则名称和触发条件编辑区 */}
+			<div className="flex-1 h-full flex justify-center flex-col">
+				<input
+					type="text"
+					value={item.name}
+					onChange={(e) => onNameChange(item.id, e.target.value)}
+					className="text-neutral-900 font-bold w-full bg-transparent"
+				/>
+				<select
+					value={item.trigger}
+					onChange={(e) =>
+						onTriggerChange(item.id, e.target.value as TriggerType)
+					}
+					className="text-neutral-500 text-sm bg-transparent"
+				>
+					{triggerOptions.map((option) => (
+						<option
+							key={option}
+							value={option}
+							className="bg-neutral-50 transition-colors hover:bg-blue-200"
+						>
+							{option}
+						</option>
+					))}
+				</select>
+			</div>
+
+			{/* 删除图标 */}
 			<img
 				src={deleteIcon}
-				className="w-8 h-8 cursor-pointer"
+				className="w-4 h-4 absolute	-right-1 -top-1 cursor-pointer invisible group-hover:visible"
 				onClick={() => onDelete(item.id)}
 			/>
-			<div className="flex-1 h-full flex justify-center flex-col">
-				<p className="text-neutral-900 font-bold">{item.name}</p>
-				<p className="text-neutral-500 text-sm">{item.trigger}</p>
-			</div>
+
+			{/* 拖拽手柄 */}
 			<div
 				className="w-6 h-full flex items-center justify-end cursor-grab active:cursor-grabbing"
 				{...dragHandleProps}
@@ -42,20 +76,18 @@ function TriggerCard({
 	);
 }
 
-function Rule() {
-	const [items, setItems] = useState([
+function RuleContent() {
+	const [items, setItems] = useState<Rule[]>([
 		{
 			name: '规则1',
-			trigger: 'critical_ias',
+			trigger: 'onCriticalSpeed',
 			action: [],
-			active: true,
 			id: uuidv4(),
 		},
 		{
 			name: '规则2',
-			trigger: 'airbrake_on',
+			trigger: 'onCriticalSpeed',
 			action: [],
-			active: true,
 			id: uuidv4(),
 		},
 	]);
@@ -71,11 +103,10 @@ function Rule() {
 	};
 
 	const addHandler = () => {
-		const newItem = {
+		const newItem: Rule = {
 			name: '新建规则',
-			trigger: 'new_trigger',
+			trigger: 'onAirbrakeOn',
 			action: [],
-			active: true,
 			id: uuidv4(),
 		};
 		setItems([...items, newItem]);
@@ -83,6 +114,26 @@ function Rule() {
 
 	const deleteHandler = (id: string) => {
 		const newItems = items.filter((item) => item.id !== id);
+		setItems(newItems);
+	};
+
+	const triggerChangeHandler = (id: string, newTrigger: TriggerType) => {
+		const newItems = items.map((item) => {
+			if (item.id === id) {
+				return { ...item, trigger: newTrigger };
+			}
+			return item;
+		});
+		setItems(newItems);
+	};
+
+	const nameChangeHandler = (id: string, newName: string) => {
+		const newItems = items.map((item) => {
+			if (item.id === id) {
+				return { ...item, name: newName };
+			}
+			return item;
+		});
 		setItems(newItems);
 	};
 
@@ -102,7 +153,7 @@ function Rule() {
 					</div>
 					<div className="bg-neutral-200 w-full h-px" />
 
-					{/* 规则卡片展示区 */}
+					{/* 规则卡片展示区 byd怎么这么能套娃 */}
 					<Droppable droppableId="rule-list">
 						{(provided, snapshot) => (
 							<div
@@ -127,6 +178,12 @@ function Rule() {
 														provided.dragHandleProps
 													}
 													onDelete={deleteHandler}
+													onTriggerChange={
+														triggerChangeHandler
+													}
+													onNameChange={
+														nameChangeHandler
+													}
 												/>
 											</div>
 										)}
@@ -146,4 +203,4 @@ function Rule() {
 	);
 }
 
-export default Rule;
+export default RuleContent;
