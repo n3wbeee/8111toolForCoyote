@@ -1,5 +1,6 @@
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { useState } from 'react';
+import { useBlocker, BlockerFunction, Blocker } from 'react-router-dom';
+import { useCallback, useState, useRef, useEffect } from 'react';
 
 const { v4: uuidv4 } = require('uuid');
 
@@ -93,15 +94,70 @@ function RuleContent() {
 		},
 	]);
 
+	const initialItemsRef = useRef(JSON.stringify(items));
+	const [isDirty, setIsDirty] = useState(false);
+
+	// 检测是否有未保存的更改
+	const checkForChanges = useCallback(() => {
+		const currentItems = JSON.stringify(items);
+		const hasChanges = currentItems !== initialItemsRef.current;
+		setIsDirty(hasChanges);
+		return hasChanges;
+	}, [items]);
+
+	// 每次items变化时检查
+	useEffect(() => {
+		checkForChanges();
+	}, [items, checkForChanges]);
+
+	// 路由拦截相关
+	const shouldBlock = useCallback<BlockerFunction>(
+		({ currentLocation, nextLocation }) => {
+			// 如果有未保存的更改且要离开当前页面，则拦截
+			return (
+				isDirty && currentLocation.pathname !== nextLocation.pathname
+			);
+		},
+		[isDirty],
+	);
+	const blocker: Blocker = useBlocker(shouldBlock);
+
+	// 保存对话框相关
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const confirmSaveHandler = () => {
 		// 在这里添加保存逻辑
+
+		// 保存成功后更新初始状态
+		initialItemsRef.current = JSON.stringify(items);
+		setIsDirty(false);
 		setIsDialogOpen(false);
+
+		// 如果是从路由拦截触发的，继续导航
+		if (blocker.state === 'blocked') {
+			blocker.proceed?.();
+		}
 	};
 	const cancelSaveHandler = () => {
 		setIsDialogOpen(false);
+
+		// 如果是从路由拦截触发的，取消导航
+		if (blocker.state === 'blocked') {
+			blocker.reset?.();
+		}
+	};
+	const discardChangesHandler = () => {
+		// 放弃更改，恢复到初始状态
+		setItems(JSON.parse(initialItemsRef.current));
+		setIsDirty(false);
+		setIsDialogOpen(false);
+
+		// 如果是从路由拦截触发的，继续导航
+		if (blocker.state === 'blocked') {
+			blocker.proceed?.();
+		}
 	};
 
+	// item操作相关
 	const addHandler = () => {
 		const newItem: Rule = {
 			name: '新建规则',
@@ -133,7 +189,6 @@ function RuleContent() {
 		const newItems = items.filter((item) => item.id !== id);
 		setItems(newItems);
 	};
-
 	const dragHandler = (result: any) => {
 		if (!result.destination) return;
 
@@ -147,27 +202,39 @@ function RuleContent() {
 	return (
 		<DragDropContext onDragEnd={dragHandler}>
 			<div className="relative flex flex-1 h-full overflow-hidden select-none">
-				{isDialogOpen && (
+				{(isDialogOpen || blocker.state === 'blocked') && (
 					<div className="absolute inset-0 z-10 flex items-center justify-center bg-black bg-opacity-25">
-						<div className="p-4 bg-white rounded-lg shadow-xl">
-							<h2 className="text-lg font-bold text-neutral-900">
-								确认保存
+						<div className="p-6 bg-white rounded-lg shadow-xl min-w-80">
+							<h2 className="text-lg font-bold text-neutral-900 mb-2">
+								{blocker.state === 'blocked'
+									? '未保存的更改'
+									: '确认保存'}
 							</h2>
-							<p className="text-neutral-900">
-								你确定要保存当前的规则配置吗？
+							<p className="text-neutral-700 mb-4">
+								{blocker.state === 'blocked'
+									? '您有未保存的更改，是否要保存？'
+									: '您确定要保存当前的规则配置吗？'}
 							</p>
-							<div className="flex justify-end mt-4">
+							<div className="flex justify-end gap-2">
 								<button
 									onClick={cancelSaveHandler}
-									className="px-4 py-1 mr-2 text-white bg-gray-500 rounded transition-colors hover:bg-gray-600"
+									className="px-4 py-2 text-white bg-gray-500 rounded transition-colors hover:bg-gray-600"
 								>
 									取消
 								</button>
+								{blocker.state === 'blocked' && (
+									<button
+										onClick={discardChangesHandler}
+										className="px-4 py-2 text-white bg-red-500 rounded transition-colors hover:bg-red-600"
+									>
+										放弃更改
+									</button>
+								)}
 								<button
 									onClick={confirmSaveHandler}
-									className="px-4 py-1 text-white bg-blue-500 rounded transition-colors hover:bg-blue-600"
+									className="px-4 py-2 text-white bg-blue-500 rounded transition-colors hover:bg-blue-600"
 								>
-									确认
+									保存
 								</button>
 							</div>
 						</div>
