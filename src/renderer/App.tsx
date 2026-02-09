@@ -56,11 +56,6 @@ function Sidebar() {
 				status={location.pathname === '/rule'}
 				onClick={() => navigate('/rule')}
 			/>
-			<Button
-				text="设置"
-				status={location.pathname === '/setting'}
-				onClick={() => navigate('/setting')}
-			/>
 		</div>
 	);
 }
@@ -103,10 +98,6 @@ function Navbar() {
 	);
 }
 
-function Setting() {
-	return <div className="p-4">Setting Content</div>;
-}
-
 function MainPage() {
 	let navigate = useNavigate();
 
@@ -127,7 +118,6 @@ function MainPage() {
 				<Routes>
 					<Route path="/link" element={<Link />} />
 					<Route path="/rule" element={<Rule />} />
-					<Route path="/setting" element={<Setting />} />
 				</Routes>
 			</div>
 		</>

@@ -1,6 +1,7 @@
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-const { v4: uuidv4 } = require('uuid');
 import { useState } from 'react';
+
+const { v4: uuidv4 } = require('uuid');
 
 import save from '../../../assets/icons/save.svg';
 import create from '../../../assets/icons/create.svg';
@@ -92,14 +93,13 @@ function RuleContent() {
 		},
 	]);
 
-	const dragHandler = (result: any) => {
-		if (!result.destination) return;
-
-		const newItems = Array.from(items);
-		const [reorderedItem] = newItems.splice(result.source.index, 1);
-		newItems.splice(result.destination.index, 0, reorderedItem);
-
-		setItems(newItems);
+	const [isDialogOpen, setIsDialogOpen] = useState(false);
+	const confirmSaveHandler = () => {
+		// 在这里添加保存逻辑
+		setIsDialogOpen(false);
+	};
+	const cancelSaveHandler = () => {
+		setIsDialogOpen(false);
 	};
 
 	const addHandler = () => {
@@ -111,12 +111,6 @@ function RuleContent() {
 		};
 		setItems([...items, newItem]);
 	};
-
-	const deleteHandler = (id: string) => {
-		const newItems = items.filter((item) => item.id !== id);
-		setItems(newItems);
-	};
-
 	const triggerChangeHandler = (id: string, newTrigger: TriggerType) => {
 		const newItems = items.map((item) => {
 			if (item.id === id) {
@@ -126,7 +120,6 @@ function RuleContent() {
 		});
 		setItems(newItems);
 	};
-
 	const nameChangeHandler = (id: string, newName: string) => {
 		const newItems = items.map((item) => {
 			if (item.id === id) {
@@ -136,15 +129,62 @@ function RuleContent() {
 		});
 		setItems(newItems);
 	};
+	const deleteHandler = (id: string) => {
+		const newItems = items.filter((item) => item.id !== id);
+		setItems(newItems);
+	};
+
+	const dragHandler = (result: any) => {
+		if (!result.destination) return;
+
+		const newItems = Array.from(items);
+		const [reorderedItem] = newItems.splice(result.source.index, 1);
+		newItems.splice(result.destination.index, 0, reorderedItem);
+
+		setItems(newItems);
+	};
 
 	return (
 		<DragDropContext onDragEnd={dragHandler}>
-			<div className="flex flex-1 h-full overflow-hidden select-none">
+			<div className="relative flex flex-1 h-full overflow-hidden select-none">
+				{isDialogOpen && (
+					<div className="absolute inset-0 z-10 flex items-center justify-center bg-black bg-opacity-25">
+						<div className="p-4 bg-white rounded-lg shadow-xl">
+							<h2 className="text-lg font-bold text-neutral-900">
+								确认保存
+							</h2>
+							<p className="text-neutral-900">
+								你确定要保存当前的规则配置吗？
+							</p>
+							<div className="flex justify-end mt-4">
+								<button
+									onClick={cancelSaveHandler}
+									className="px-4 py-1 mr-2 text-white bg-gray-500 rounded transition-colors hover:bg-gray-600"
+								>
+									取消
+								</button>
+								<button
+									onClick={confirmSaveHandler}
+									className="px-4 py-1 text-white bg-blue-500 rounded transition-colors hover:bg-blue-600"
+								>
+									确认
+								</button>
+							</div>
+						</div>
+					</div>
+				)}
+
 				{/* 规则页 */}
 				<div className="w-64 h-full flex flex-col">
 					{/* 工具栏 */}
 					<div className="w-full h-8 flex items-center justify-end p-2 gap-2 bg-neutral-50">
-						<img src={save} className="cursor-pointer" />
+						<img
+							src={save}
+							className="cursor-pointer"
+							onClick={() => {
+								setIsDialogOpen(true);
+							}}
+						/>
 						<img
 							src={create}
 							className="cursor-pointer"
